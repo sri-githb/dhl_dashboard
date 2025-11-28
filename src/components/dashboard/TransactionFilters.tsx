@@ -2,13 +2,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Download, RefreshCw } from "lucide-react";
-import { LocationType, TransactionType } from "@/types/transaction";
+import { LocationType, TransactionType, TransactionStatus } from "@/types/transaction";
 
 interface TransactionFiltersProps {
   selectedLocation: LocationType | "all";
   setSelectedLocation: (location: LocationType | "all") => void;
   selectedType: TransactionType | "all";
   setSelectedType: (type: TransactionType | "all") => void;
+  selectedStatus: TransactionStatus | "all";
+  setSelectedStatus: (status: TransactionStatus | "all") => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onRefresh: () => void;
@@ -20,6 +22,8 @@ const TransactionFilters = ({
   setSelectedLocation,
   selectedType,
   setSelectedType,
+  selectedStatus,
+  setSelectedStatus,
   searchQuery,
   setSearchQuery,
   onRefresh,
@@ -27,7 +31,7 @@ const TransactionFilters = ({
 }: TransactionFiltersProps) => {
   return (
     <div className="glass-card p-6 rounded-xl mb-6 space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -58,6 +62,18 @@ const TransactionFilters = ({
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="Inbound">Inbound</SelectItem>
             <SelectItem value="Pickup">Pickup</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as TransactionStatus | "all")}>
+          <SelectTrigger className="glass-input">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Failed">Failed</SelectItem>
           </SelectContent>
         </Select>
 
