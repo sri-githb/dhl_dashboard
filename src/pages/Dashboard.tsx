@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [selectedLocation, setSelectedLocation] = useState<LocationType | "all">("all");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
   const [selectedStatus, setSelectedStatus] = useState<TransactionStatus | "all">("all");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [username] = useState(sessionStorage.getItem("userMobile") || "User");
@@ -37,10 +38,13 @@ const Dashboard = () => {
         searchQuery === "" ||
         transaction.itemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         transaction.trayId.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesDate = !selectedDate || 
+        new Date(transaction.createdAt).toDateString() === selectedDate.toDateString();
 
-      return matchesLocation && matchesType && matchesStatus && matchesSearch;
+      return matchesLocation && matchesType && matchesStatus && matchesSearch && matchesDate;
     });
-  }, [transactions, selectedLocation, selectedType, selectedStatus, searchQuery]);
+  }, [transactions, selectedLocation, selectedType, selectedStatus, searchQuery, selectedDate]);
 
   const stats: DashboardStats = useMemo(() => {
     const today = new Date();
@@ -118,6 +122,8 @@ const Dashboard = () => {
             setSelectedType={setSelectedType}
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onRefresh={handleRefresh}
