@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { mockTransactions } from "@/utils/mockData";
-import { Transaction, LocationType, TransactionType, DashboardStats } from "@/types/transaction";
+import { Transaction, LocationType, TransactionType, TransactionStatus, DashboardStats } from "@/types/transaction";
+import Header from "@/components/dashboard/Header";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import TransactionFilters from "@/components/dashboard/TransactionFilters";
 import TransactionTable from "@/components/dashboard/TransactionTable";
@@ -17,8 +16,10 @@ const Dashboard = () => {
   const [transactions] = useState<Transaction[]>(mockTransactions);
   const [selectedLocation, setSelectedLocation] = useState<LocationType | "all">("all");
   const [selectedType, setSelectedType] = useState<TransactionType | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<TransactionStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [username] = useState(sessionStorage.getItem("userMobile") || "User");
 
   useEffect(() => {
     const isAuthenticated = sessionStorage.getItem("isAuthenticated");
@@ -31,14 +32,15 @@ const Dashboard = () => {
     return transactions.filter((transaction) => {
       const matchesLocation = selectedLocation === "all" || transaction.locationName === selectedLocation;
       const matchesType = selectedType === "all" || transaction.transactionType === selectedType;
+      const matchesStatus = selectedStatus === "all" || transaction.status === selectedStatus;
       const matchesSearch =
         searchQuery === "" ||
         transaction.itemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         transaction.trayId.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesLocation && matchesType && matchesSearch;
+      return matchesLocation && matchesType && matchesStatus && matchesSearch;
     });
-  }, [transactions, selectedLocation, selectedType, searchQuery]);
+  }, [transactions, selectedLocation, selectedType, selectedStatus, searchQuery]);
 
   const stats: DashboardStats = useMemo(() => {
     const today = new Date();
@@ -102,39 +104,25 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-[1600px] mx-auto">
-        <header className="flex items-center justify-between mb-8 animate-fade-in">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              DHL Robot Transaction Monitor
-            </h1>
-            <p className="text-muted-foreground">
-              Real-time monitoring of cube robot transactions
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="glass-input border-border hover:border-accent/50 hover:bg-accent/5"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </header>
+    <div className="min-h-screen bg-background">
+      <Header username={username} onLogout={handleLogout} />
+      
+      <div className="pt-24 px-6 pb-6">
+        <div className="max-w-[1600px] mx-auto">
+          <SummaryCards stats={stats} />
 
-        <SummaryCards stats={stats} />
-
-        <TransactionFilters
-          selectedLocation={selectedLocation}
-          setSelectedLocation={setSelectedLocation}
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onRefresh={handleRefresh}
-          onExport={handleExport}
-        />
+          <TransactionFilters
+            selectedLocation={selectedLocation}
+            setSelectedLocation={setSelectedLocation}
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onRefresh={handleRefresh}
+            onExport={handleExport}
+          />
 
         <div className="mb-4 text-sm text-muted-foreground">
           Showing {paginatedTransactions.length} of {filteredTransactions.length} transactions
@@ -142,13 +130,14 @@ const Dashboard = () => {
 
         <TransactionTable transactions={paginatedTransactions} />
 
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
